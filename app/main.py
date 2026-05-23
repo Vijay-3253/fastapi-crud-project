@@ -3,6 +3,9 @@ from fastapi import FastAPI
 from app.db.database import engine, Base
 from app.routers.create_router import router as create_router
 
+from app.routers.get_router import router as get_router
+
+
 
 # ---------------------------------
 # Create Database Tables
@@ -23,3 +26,4 @@ app = FastAPI()
 # ---------------------------------
 
 app.include_router(create_router)
+app.include_router(get_router)
