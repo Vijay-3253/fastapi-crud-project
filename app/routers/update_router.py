@@ -1,34 +1,36 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.db.database import SessionLocal
-from app.models.user_model import User
-from app.schemas.user_schema import UserCreate
 
+from app.dependencies.database_dependency import get_db
+from app.schemas.user_schema import UserCreate
+from app.crud.update_user import update_user
+
+
+# ----------------------------------------
+# UPDATE ROUTER
+# ----------------------------------------
 router = APIRouter()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
+# ----------------------------------------
+# UPDATE USER API
+# ----------------------------------------
 @router.put("/users/{user_id}")
-def update_user(user_id: int, user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.id == user_id).first()
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    db_user.name = user.name
-    db_user.email = user.email
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+def update_user_api(
+    user_id: int,
+    user: UserCreate,
+    db: Session = Depends(get_db)
+):
 
-@router.delete("/users/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.id == user_id).first()
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    db.delete(db_user)
-    db.commit()
-    return {"message": "User deleted successfully"}
+    updated_user = update_user(db, user_id, user)
+
+    if not updated_user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    return {
+        "message": "User updated successfully",
+        "data": updated_user
+    }
