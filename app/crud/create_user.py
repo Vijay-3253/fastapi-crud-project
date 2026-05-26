@@ -1,3 +1,4 @@
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.user_model import User
@@ -10,13 +11,53 @@ from app.schemas.user_schema import UserCreate
 
 def create_user(db: Session, user: UserCreate):
 
-    new_user = User(
-        name=user.name,
-        email=user.email
-    )
+    try:
 
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+        # ---------------------------------
+        # Check Existing User
+        # ---------------------------------
 
-    return new_user
+        existing_user = db.query(User).filter(
+            User.email == user.email
+        ).first()
+
+        # ---------------------------------
+        # User Already Exists
+        # ---------------------------------
+
+        if existing_user:
+
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="User already exists"
+            )
+
+        # ---------------------------------
+        # Create New User Object
+        # ---------------------------------
+
+        new_user = User(
+            name=user.name,
+            email=user.email
+        )
+
+        db.add(new_user)
+
+        db.commit()
+
+        db.refresh(new_user)
+
+        return new_user
+
+    except HTTPException as http_error:
+
+        raise http_error
+
+    except Exception as error:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database Error: {str(error)}"
+        )
