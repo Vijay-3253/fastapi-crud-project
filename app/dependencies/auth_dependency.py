@@ -4,14 +4,18 @@ from jose import jwt, JWTError
 
 from app.core.config import SECRET_KEY, ALGORITHM
 
+# -----------------------------
+# JWT SCHEME
+# -----------------------------
 security = HTTPBearer()
 
 
-# GET CURRENT USER
+# -----------------------------
+# GET CURRENT USER (AUTHENTICATION)
+# -----------------------------
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
-
     token = credentials.credentials
 
     try:
@@ -21,36 +25,38 @@ def get_current_user(
             algorithms=[ALGORITHM]
         )
 
-        user_id = payload.get("sub")
-        role = payload.get("role")
-
-        if user_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token payload"
-            )
-
         return {
-            "user_id": user_id,
-            "role": role
+            "user_id": payload.get("sub"),
+            "role": payload.get("role")
         }
 
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
+            detail="Token expired or invalid"
         )
 
 
-# ROLE BASED ACCESS
+# -----------------------------
+# RBAC (AUTHORIZATION)
+# -----------------------------
 def require_role(required_role: str):
 
     def role_checker(user=Depends(get_current_user)):
 
-        if user["role"] != required_role:
+        user_role = user.get("role")
+
+        if not user_role:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: insufficient permissions"
+                status_code=403,
+                detail="Role not found in token"
+            )
+
+        # 🔥 FIX: case-insensitive comparison
+        if user_role.upper() != required_role.upper():
+            raise HTTPException(
+                status_code=403,
+                detail=f"Access denied: {required_role} role required"
             )
 
         return user
