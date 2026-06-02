@@ -33,4 +33,7 @@ app.include_router(get_router)
 #---trupti
 app.include_router(update_router)
 app.include_router(delete_router)
-
+from app.routers.auth_router import router as auth_router
+from app.routers.user_router import router as user_router
+app.include_router(auth_router)
+app.include_router(user_router)

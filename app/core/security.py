@@ -1,13 +1,71 @@
+from datetime import datetime, timedelta
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from app.core.config import SECRET_KEY, ALGORITHM
+
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto"
+)
 
 
-# PASSWORD HASH
-def hash_password(password: str) -> str:
+# PASSWORD HASHING
+def hash_password(password: str):
     return pwd_context.hash(password)
 
 
-# VERIFY PASSWORD
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+def verify_password(plain: str, hashed: str):
+    return pwd_context.verify(plain, hashed)
+
+
+# ACCESS TOKEN
+def create_access_token(
+    data: dict,
+    expires_minutes: int = 15
+):
+    to_encode = data.copy()
+
+    expire = datetime.utcnow() + timedelta(
+        minutes=expires_minutes
+    )
+
+    to_encode.update({"exp": expire})
+
+    return jwt.encode(
+        to_encode,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+
+
+# REFRESH TOKEN
+def create_refresh_token(data: dict):
+    to_encode = data.copy()
+
+    expire = datetime.utcnow() + timedelta(
+        days=7
+    )
+
+    to_encode.update({"exp": expire})
+
+    return jwt.encode(
+        to_encode,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+
+
+# DECODE TOKEN
+def decode_token(token: str):
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+
+        return payload
+
+    except JWTError:
+        return None
