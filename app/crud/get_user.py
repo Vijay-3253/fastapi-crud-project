@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.models.user_model import User
 
@@ -5,7 +6,7 @@ from app.models.user_model import User
 # GET ALL USERS LOGIC
 # ----------------------------------------
 def get_all_users(db: Session):
-    return db.query(User).all()
+    return db.query(User).filter(func.lower(User.role) == "user").all()
 
 
 
