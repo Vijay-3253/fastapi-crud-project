@@ -1,6 +1,16 @@
 fastapi
-uvicorn
+uvicorn[standard]
+
+# Database
 sqlalchemy
 psycopg2-binary
+
+# Environment variables
 python-dotenv
+
+# Validation
 email-validator
+
+# Password hashing (IMPORTANT FIX)
+passlib==1.7.4
+bcrypt==4.0.1
