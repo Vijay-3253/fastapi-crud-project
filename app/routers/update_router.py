@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.dependencies.database_dependency import get_db
-from app.schemas.user_schema import UserCreate
 from app.crud.update_user import update_user
+from app.dependencies.database_dependency import get_db
+from app.schemas.user_schema import UserUpdate
 
 
 # ----------------------------------------
@@ -18,7 +18,7 @@ router = APIRouter()
 @router.put("/users/{user_id}")
 def update_user_api(
     user_id: int,
-    user: UserCreate,
+    user: UserUpdate,
     db: Session = Depends(get_db)
 ):
 

@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from app.dependencies.database_dependency import get_db
 from app.models.user_model import User
 from app.schemas.auth_schema import LoginSchema, TokenResponse, RefreshSchema
-from app.core.security import (
-    verify_password,
+from app.core.password import verify_password
+from app.core.jwt_token import (
     create_access_token,
     create_refresh_token,
     decode_token
